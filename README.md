@@ -9,7 +9,7 @@ A TypeScript SDK for interacting with ShdwDrive, providing simple and efficient 
 ## Installation
 ```bash
 # Install from npm
-npm install @shdw-drive/sdk
+npm install @shdwdrive/sdk
 
 # Or install from repository
 git clone https://github.com/GenesysGo/shdwdrive-v2-sdk.git
@@ -38,7 +38,7 @@ npm link @shdw-drive/sdk
 
 ## Quick Start
 ```typescript
-import ShdwDriveSDK from '@shdw-drive/sdk';
+import ShdwDriveSDK from '@shdwdrive/sdk';
 // Initialize with wallet
 const drive = new ShdwDriveSDK({}, { wallet: yourWalletAdapter });
 // Or initialize with keypair
