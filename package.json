@@ -17,6 +17,11 @@
     "solana",
     "storage"
   ],
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "author": "",
   "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
