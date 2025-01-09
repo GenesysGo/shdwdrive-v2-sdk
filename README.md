@@ -18,7 +18,7 @@ npm install
 npm run build
 ```
 
-# For local development, you can link the package
+## For local development, you can link the package
 ```bash
 cd shdwdrive-v2-sdk
 npm link
