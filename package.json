@@ -1,9 +1,12 @@
 {
-  "name": "@shdwdrive/sdk",
+"name": "@shdwdrive/sdk",
   "version": "1.0.0",
   "description": "SDK for shdwDrive file operations",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
