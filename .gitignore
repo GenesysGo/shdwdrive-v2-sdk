@@ -1,0 +1,9 @@
+# Build output
+dist/
+*.js
+*.js.map
+*.d.ts
+node_modules
+
+# Keep any intentional JS files
+!jest.config.js

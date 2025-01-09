@@ -1,0 +1,30 @@
+{
+  "name": "@shdw-drive/sdk",
+  "version": "2.0.0",
+  "description": "SDK for shdwDrive file operations",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean"
+  },
+  "keywords": [
+    "shdwdrive",
+    "solana",
+    "storage"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@project-serum/anchor": "^0.26.0",
+    "@solana/web3.js": "^1.98.0",
+    "crypto-js": "^4.2.0",
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.3"
+  }
+}
