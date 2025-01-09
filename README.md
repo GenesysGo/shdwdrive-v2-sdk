@@ -8,8 +8,22 @@ A TypeScript SDK for interacting with ShdwDrive, providing simple and efficient 
 
 ## Installation
 ```bash
-
+# Install from npm
 npm install @shdw-drive/sdk
+
+# Or install from repository
+git clone https://github.com/GenesysGo/shdwdrive-v2-sdk.git
+cd shdwdrive-v2-sdk
+npm install
+npm run build
+```
+
+# For local development, you can link the package
+```bash
+cd shdwdrive-v2-sdk
+npm link
+cd your-project
+npm link @shdw-drive/sdk
 ```
 
 ## Features
