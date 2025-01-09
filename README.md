@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/shdwdrive-logo.svg" alt="ShdwDrive Logo" width="600"/>
+  <img src="assets/shdwdrive_Logo.png" alt="ShdwDrive Logo" width="600"/>
 </p>
 
 # shdwDrive SDK
