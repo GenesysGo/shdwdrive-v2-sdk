@@ -52,7 +52,7 @@ const drive = new ShdwDriveSDK({}, { keypair: yourKeypair });
 const file = new File(['Hello World'], 'hello.txt', { type: 'text/plain' });
 const uploadResponse = await drive.uploadFile('your-bucket', file, {
 onProgress: (progress) => {
-console.log(Upload progress: ${progress.progress}%);
+console.log(`Upload progress: ${progress.progress}%`);
 }
 });
 console.log('File uploaded:', uploadResponse.finalized_location)
