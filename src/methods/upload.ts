@@ -3,10 +3,21 @@ import { CHUNK_SIZE } from '../utils/constants';
 import { UploadConfig, UploadResponse } from '../types';
 
 export async function uploadSmallFile(config: UploadConfig): Promise<UploadResponse> {
-  const { endpoint, bucket, file, getSigner, signMessage } = config;
+  const { endpoint, bucket, file, getSigner, signMessage, directory = '' } = config;
+
+  // Clean up directory path but keep trailing slash if it's a real folder
+  const cleanDirectory = directory
+    .replace(/^\/+/, '')  // Remove leading slashes
+    .replace(/\/+/g, '/') // Normalize multiple slashes to single
+    .replace(/\/*$/, '/'); // Ensure single trailing slash
   
+  // Create the full path with proper folder structure
+  const fullPath = `${cleanDirectory}${file.name}`;
+  
+  // Use just the filename for hash calculation to match server behavior
   const fileNamesHash = SHA256(file.name).toString();
   const messageToSign = `Shadow Drive Signed Message:\nStorage Account: ${bucket}\nUpload file with hash: ${fileNamesHash}`;
+  
   const signature = await signMessage(messageToSign);
   const signer = getSigner();
 
@@ -15,6 +26,9 @@ export async function uploadSmallFile(config: UploadConfig): Promise<UploadRespo
   formData.append('message', signature);
   formData.append('signer', signer);
   formData.append('storage_account', bucket);
+  formData.append('directory', cleanDirectory);
+  formData.append('name', file.name);
+  formData.append('full_path', fullPath);
 
   const response = await fetch(`${endpoint}/v1/object/upload`, {
     method: 'POST',
@@ -40,14 +54,37 @@ export async function uploadSmallFile(config: UploadConfig): Promise<UploadRespo
     throw new Error(errorMessage);
   }
 
-  return response.json();
+  const result = await response.json();
+  
+  // Fix the finalized location to include the directory
+  if (result.finalized_location && cleanDirectory) {
+    const urlParts = result.finalized_location.split('/');
+    const bucketIndex = urlParts.indexOf(bucket);
+    if (bucketIndex !== -1) {
+      urlParts.splice(bucketIndex + 1, 0, cleanDirectory.replace(/\/$/, '')); // Remove trailing slash for URL
+      result.finalized_location = urlParts.join('/');
+    }
+  }
+
+  return result;
 }
 
 export async function uploadLargeFile(config: UploadConfig): Promise<UploadResponse> {
-  const { endpoint, bucket, file, getSigner, signMessage, onProgress } = config;
+  const { endpoint, bucket, file, getSigner, signMessage, onProgress, directory = '' } = config;
 
-  // Initialize multipart upload
+  // Clean up directory path but keep trailing slash if it's a real folder
+  const cleanDirectory = directory
+    .replace(/^\/+/, '')  // Remove leading slashes
+    .replace(/\/+/g, '/') // Normalize multiple slashes to single
+    .replace(/\/*$/, '/'); // Ensure single trailing slash
+  
+  // Create the full path with proper folder structure
+  const fullPath = `${cleanDirectory}${file.name}`;
+  
+  // Use just the filename for hash calculation to match server behavior
+  const fileNamesHash = SHA256(file.name).toString();
   const initMessage = `Shadow Drive Signed Message:\nInitialize multipart upload\nBucket: ${bucket}\nFilename: ${file.name}\nFile size: ${file.size}`;
+  
   const signature = await signMessage(initMessage);
   const signer = getSigner();
 
@@ -63,6 +100,9 @@ export async function uploadLargeFile(config: UploadConfig): Promise<UploadRespo
         signer,
         size: file.size,
         file_type: file.type,
+        directory: cleanDirectory,
+        name: file.name,
+        full_path: fullPath
       }),
     }
   );
@@ -131,6 +171,18 @@ export async function uploadLargeFile(config: UploadConfig): Promise<UploadRespo
     throw new Error(error.error || 'Failed to complete multipart upload');
   }
 
+  const result = await completeResponse.json();
+  
+  // Fix the finalized location to include the directory
+  if (result.finalized_location && cleanDirectory) {
+    const urlParts = result.finalized_location.split('/');
+    const bucketIndex = urlParts.indexOf(bucket);
+    if (bucketIndex !== -1) {
+      urlParts.splice(bucketIndex + 1, 0, cleanDirectory.replace(/\/$/, '')); // Remove trailing slash for URL
+      result.finalized_location = urlParts.join('/');
+    }
+  }
+
   onProgress?.(100);
-  return completeResponse.json();
+  return result;
 }

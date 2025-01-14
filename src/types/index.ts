@@ -60,6 +60,7 @@ export interface UploadConfig {
   getSigner: () => string;
   signMessage: (message: string) => Promise<string>;
   onProgress?: (progress: number) => void;
+  directory?: string;
 }
 
 export interface DeleteConfig {
@@ -79,4 +80,23 @@ export interface ListFilesConfig {
 export interface BucketUsageConfig {
   endpoint: string;
   bucket: string;
+}
+
+// Folder Types
+export interface FolderConfig {
+  endpoint: string;
+  bucket: string;
+  folderName: string;
+  getSigner: () => string;
+  signMessage: (message: string) => Promise<string>;
+}
+
+export interface CreateFolderResponse {
+  message: string;
+  folder_location: string;
+}
+
+export interface DeleteFolderResponse {
+  message: string;
+  deleted_objects: number;
 }

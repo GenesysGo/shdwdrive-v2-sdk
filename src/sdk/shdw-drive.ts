@@ -1,11 +1,12 @@
 import { Keypair } from '@solana/web3.js';
 import { signMessage, getSigner } from '../utils/signing';
 import { uploadSmallFile, uploadLargeFile } from '../methods/upload';
+import { createFolder, deleteFolder } from '../methods/folder';
 import { deleteFile } from '../methods/delete';
 import { listFiles } from '../methods/list';
 import { getBucketUsage } from '../methods/bucket';
 import { CHUNK_SIZE, DEFAULT_ENDPOINT } from '../utils/constants';
-import type { ShdwDriveConfig, WalletAdapter, FileUploadProgress } from '../types';
+import type { ShdwDriveConfig, WalletAdapter, FileUploadProgress, FolderConfig, CreateFolderResponse, DeleteFolderResponse, UploadResponse } from '../types';
 
 
 interface BucketUsageResponse {
@@ -47,17 +48,18 @@ export class ShdwDriveSDK {
   }
 
   async uploadFile(
-    bucket: string,
-    file: File,
-    options: {
-      onProgress?: (progress: FileUploadProgress) => void;
+    bucket: string, 
+    file: File, 
+    options: { 
+      directory?: string;
+      onProgress?: (progress: FileUploadProgress) => void 
     } = {}
-  ): Promise<{ finalized_location: string }> {
+  ): Promise<UploadResponse> {
     const { onProgress } = options;
-    const updateProgress = (progress: number) => {
+    const updateProgress = (numericProgress: number) => {
       onProgress?.({
         status: 'uploading',
-        progress,
+        progress: numericProgress,
       });
     };
   
@@ -68,7 +70,8 @@ export class ShdwDriveSDK {
         file,
         getSigner: () => this.getSigner(),
         signMessage: (m: string) => this.signMessage(m),
-        onProgress: updateProgress
+        onProgress: updateProgress,
+        directory: options.directory,
       };
   
       if (file.size <= CHUNK_SIZE) {
@@ -112,6 +115,32 @@ export class ShdwDriveSDK {
     return getBucketUsage({
       endpoint: this.endpoint,
       bucket
+    });
+  }
+
+  async createFolder(
+    bucket: string,
+    folderName: string
+  ): Promise<CreateFolderResponse> {
+    return createFolder({
+      endpoint: this.endpoint,
+      bucket,
+      folderName,
+      getSigner: () => this.getSigner(),
+      signMessage: (m) => this.signMessage(m)
+    });
+  }
+  
+  async deleteFolder(
+    bucket: string,
+    folderPath: string
+  ): Promise<DeleteFolderResponse> {
+    return deleteFolder({
+      endpoint: this.endpoint,
+      bucket,
+      folderName: folderPath,
+      getSigner: () => this.getSigner(),
+      signMessage: (m) => this.signMessage(m)
     });
   }
 
