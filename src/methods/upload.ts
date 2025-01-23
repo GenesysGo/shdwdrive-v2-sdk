@@ -9,10 +9,11 @@ export async function uploadSmallFile(config: UploadConfig): Promise<UploadRespo
   const cleanDirectory = directory
     .replace(/^\/+/, '')  // Remove leading slashes
     .replace(/\/+/g, '/') // Normalize multiple slashes to single
-    .replace(/\/*$/, '/'); // Ensure single trailing slash
+    .replace(/\/*$/, directory ? '/' : ''); // Only add trailing slash if directory exists
   
   // Create the full path with proper folder structure
-  const fullPath = `${cleanDirectory}${file.name}`;
+  const fullPath = directory ? `${cleanDirectory}${file.name}` : file.name;
+
   
   // Use just the filename for hash calculation to match server behavior
   const fileNamesHash = SHA256(file.name).toString();
