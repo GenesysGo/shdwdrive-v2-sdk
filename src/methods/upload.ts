@@ -80,7 +80,7 @@ export async function uploadLargeFile(config: UploadConfig): Promise<UploadRespo
     .replace(/\/*$/, '/'); // Ensure single trailing slash
   
   // Create the full path with proper folder structure
-  const fullPath = `${cleanDirectory}${file.name}`;
+  const fullPath = directory ? `${cleanDirectory}${file.name}` : file.name;
   
   // Use just the filename for hash calculation to match server behavior
   const fileNamesHash = SHA256(file.name).toString();
