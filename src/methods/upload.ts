@@ -77,14 +77,13 @@ export async function uploadLargeFile(config: UploadConfig): Promise<UploadRespo
   const cleanDirectory = directory
     .replace(/^\/+/, '')  // Remove leading slashes
     .replace(/\/+/g, '/') // Normalize multiple slashes to single
-    .replace(/\/*$/, '/'); // Ensure single trailing slash
+    .replace(/\/*$/, directory ? '/' : ''); // Only add trailing slash if directory exists
   
   // Create the full path with proper folder structure
-  const fullPath = `${cleanDirectory}${file.name}`;
-  
-  // Use just the filename for hash calculation to match server behavior
+  const fullPath = directory ? `${cleanDirectory}${file.name}` : file.name;
+
   const fileNamesHash = SHA256(file.name).toString();
-  const initMessage = `Shadow Drive Signed Message:\nInitialize multipart upload\nBucket: ${bucket}\nFilename: ${file.name}\nFile size: ${file.size}`;
+  const initMessage = `Shadow Drive Signed Message:\nInitialize multipart upload\nBucket: ${bucket}\nFilename: ${fullPath}\nFile size: ${file.size}`;
   
   const signature = await signMessage(initMessage);
   const signer = getSigner();
@@ -96,13 +95,13 @@ export async function uploadLargeFile(config: UploadConfig): Promise<UploadRespo
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         bucket,
-        filename: file.name,
+        filename: fullPath,      // Changed: use fullPath instead of just file.name
         message: signature,
         signer,
         size: file.size,
         file_type: file.type,
         directory: cleanDirectory,
-        name: file.name,
+        name: file.name,         // Keep original name
         full_path: fullPath
       }),
     }
@@ -110,6 +109,7 @@ export async function uploadLargeFile(config: UploadConfig): Promise<UploadRespo
 
   if (!initResponse.ok) {
     const error = await initResponse.json();
+    console.log('Server response:', error); // Add this for debugging
     throw new Error(error.error || 'Failed to initialize multipart upload');
   }
 
@@ -174,14 +174,10 @@ export async function uploadLargeFile(config: UploadConfig): Promise<UploadRespo
 
   const result = await completeResponse.json();
   
-  // Fix the finalized location to include the directory
-  if (result.finalized_location && cleanDirectory) {
-    const urlParts = result.finalized_location.split('/');
-    const bucketIndex = urlParts.indexOf(bucket);
-    if (bucketIndex !== -1) {
-      urlParts.splice(bucketIndex + 1, 0, cleanDirectory.replace(/\/$/, '')); // Remove trailing slash for URL
-      result.finalized_location = urlParts.join('/');
-    }
+  // Clean up the URL encoding in the finalized location
+  if (result.finalized_location) {
+    // Replace any URL-encoded slashes (%2F) with regular slashes
+    result.finalized_location = result.finalized_location.replace(/%2F/g, '/');
   }
 
   onProgress?.(100);
